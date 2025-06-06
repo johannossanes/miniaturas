@@ -1,6 +1,6 @@
-# API CONCURSO FENADOCE
+# API Brids Miniaturas
 
-Uma api simples de aprendizado que simula o concruso da fenadoce.
+Uma api simples que simula uma loja de miniaturas artesanais. 
 
 ## Recursos
 

@@ -9,45 +9,44 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Aluno {
+model Cliente {
   id            Int       @id @default(autoincrement())
   nome          String    @db.VarChar(40)
-  turma         String    @db.VarChar(40)
-  obs           String?   @db.VarChar(255)
-  responsavel   String    @db.VarChar(40)
   email         String    @db.VarChar(120)
-  saldo         Decimal   @db.Decimal(9,2) @default(0)
+  divida        Decimal   @db.Decimal(7, 2)
   vendas        Venda[]
   depositos     Deposito[]
-  @@map("alunos")
+  @@map("clientes")
 }
 
-model Produto {
+model Miniatura {
   id            Int           @id @default(autoincrement())
-  nome          String        @db.VarChar(50)
-  quant         Int           @db.SmallInt
+  personagem    String        @db.VarChar(50)
+  tamanho       Decimal       @db.Decimal(2, 2)
   preco         Decimal       @db.Decimal(7, 2)
-  vendas        Venda[]
-  @@map("produtos")
+  obs           String?       @db.VarChar(255)
+  previsao      DateTime      @db.Date()
+  status        String        @default("Em Produção")
+  venda         Venda?        @relation(fields: [vendaId], references: [id])
+  vendaId       Int?   
+  @@map("miniatura")
 }
 
 model Venda {
   id          Int          @id @default(autoincrement())
   data        DateTime     @default(now())
-  aluno       Aluno        @relation(fields: [alunoId], references: [id])
-  alunoId     Int
-  produto     Produto      @relation(fields: [produtoId], references: [id])
-  produtoId   Int
-  quant       Int          @db.SmallInt
-  preco       Decimal      @db.Decimal(9,2)
+  cliente     Cliente      @relation(fields: [clienteId], references: [id])
+  clienteId   Int
+  miniaturas  Miniatura[]
+  precoTotal  Decimal      @db.Decimal(9,2)
   @@map("vendas")
 }
 
 model Deposito {
   id          Int         @id @default(autoincrement())
   data        DateTime    @default(now())
-  aluno       Aluno       @relation(fields: [alunoId], references: [id])
-  alunoId     Int
+  cliente     Cliente     @relation(fields: [clienteId], references: [id])
+  clienteId   Int
   tipo        Tipos
   valor       Decimal     @db.Decimal(9,2)
   @@map("depositos")

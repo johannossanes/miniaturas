@@ -6,20 +6,17 @@ const prisma = new PrismaClient()
 
 const router = Router()
 
-const alunoSchema = z.object({
+const clienteSchema = z.object({
   nome: z.string().min(10,
     { message: "Nome deve possuir, no mínimo, 10 caracteres" }),
-  turma: z.string(),
-  responsavel: z.string(),
   email: z.string().min(10,
-    { message: "E-mail, no mínimo, 10 caracteres" }),
-  obs: z.string().optional(),
+    { message: "E-mail, no mínimo, 10 caracteres" })
 })
 
 router.get("/", async (req, res) => {
   try {
-    const alunos = await prisma.aluno.findMany()
-    res.status(200).json(alunos)
+    const clientes = await prisma.cliente.findMany()
+    res.status(200).json(clientes)
   } catch (error) {
     res.status(500).json({ erro: error })
   }
@@ -27,19 +24,19 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
 
-  const valida = alunoSchema.safeParse(req.body)
+  const valida = clienteSchema.safeParse(req.body)
   if (!valida.success) {
     res.status(400).json({ erro: valida.error })
     return
   }
 
-  const { nome, turma, responsavel, email, obs } = valida.data
+  const { nome, email } = valida.data
 
   try {
-    const alunos = await prisma.aluno.create({
-      data: { nome, turma, responsavel, email, obs }
+    const clientes = await prisma.cliente.create({
+      data: { nome, email, divida: 0 }
     })
-    res.status(201).json(alunos)
+    res.status(201).json(clientes)
   } catch (error) {
     res.status(400).json({ error })
   }
@@ -49,10 +46,10 @@ router.delete("/:id", async (req, res) => {
   const { id } = req.params
 
   try {
-    const aluno = await prisma.aluno.delete({
+    const cliente = await prisma.cliente.delete({
       where: { id: Number(id) }
     })
-    res.status(200).json(aluno)
+    res.status(200).json(cliente)
   } catch (error) {
     res.status(400).json({ erro: error })
   }
@@ -61,20 +58,27 @@ router.delete("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   const { id } = req.params
 
-  const valida = alunoSchema.safeParse(req.body)
+  const valida = clienteSchema.safeParse(req.body)
   if (!valida.success) {
     res.status(400).json({ erro: valida.error })
     return
   }
 
-  const { nome, turma, responsavel, obs } = valida.data
+  const { nome, email } = valida.data
 
   try {
-    const aluno = await prisma.aluno.update({
-      where: { id: Number(id) },
-      data: { nome, turma, responsavel, obs }
+    const clienteExistente = await prisma.cliente.findUnique({
+      where: { id: Number(id) }
     })
-    res.status(200).json(aluno)
+
+    if (!clienteExistente) {
+      return res.status(404).json({ erro: "Cliente não encontrado." })
+    }
+    const cliente = await prisma.cliente.update({
+      where: { id: Number(id) },
+      data: { nome, email, divida: clienteExistente.divida }
+    })
+    res.status(200).json(cliente)
   } catch (error) {
     res.status(400).json({ error })
   }

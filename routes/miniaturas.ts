@@ -6,17 +6,20 @@ const prisma = new PrismaClient()
 
 const router = Router()
 
-const produtoSchema = z.object({
-  nome: z.string().min(4,
-    { message: "Nome deve possuir, no mínimo, 4 caracteres" }),
-  quant: z.number(),
-  preco: z.number()
+const miniaturaSchema = z.object({
+  personagem: z.string().min(4,
+    { message: "Nome do personagem deve possuir, no mínimo, 4 caracteres" }),
+  tamanho: z.number(),
+  preco: z.number(),
+  obs: z.string().optional(),
+  previsao: z.coerce.date()
+
 })
 
 router.get("/", async (req, res) => {
   try {
-    const produtos = await prisma.produto.findMany()
-    res.status(200).json(produtos)
+    const miniaturas = await prisma.miniatura.findMany()
+    res.status(200).json(miniaturas)
   } catch (error) {
     res.status(500).json({ erro: error })
   }
@@ -24,19 +27,19 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
 
-  const valida = produtoSchema.safeParse(req.body)
+  const valida = miniaturaSchema.safeParse(req.body)
   if (!valida.success) {
     res.status(400).json({ erro: valida.error })
     return
   }
 
-  const { nome, quant, preco} = valida.data
+  const { personagem, tamanho, preco, previsao, obs} = valida.data
 
   try {
-    const produtos = await prisma.produto.create({
-      data: { nome, quant, preco }
+    const miniatura = await prisma.miniatura.create({
+      data: { personagem, tamanho, preco, previsao, obs }
     })
-    res.status(201).json(produtos)
+    res.status(201).json(miniatura)
   } catch (error) {
     res.status(400).json({ error })
   }
@@ -46,10 +49,10 @@ router.delete("/:id", async (req, res) => {
   const { id } = req.params
 
   try {
-    const produtos = await prisma.produto.delete({
+    const miniaturas = await prisma.miniatura.delete({
       where: { id: Number(id) }
     })
-    res.status(200).json(produtos)
+    res.status(200).json(miniaturas)
   } catch (error) {
     res.status(400).json({ erro: error })
   }
@@ -58,20 +61,20 @@ router.delete("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   const { id } = req.params
 
-  const valida = produtoSchema.safeParse(req.body)
+  const valida = miniaturaSchema.safeParse(req.body)
   if (!valida.success) {
     res.status(400).json({ erro: valida.error })
     return
   }
 
-  const { nome, quant, preco } = valida.data
+  const { personagem, tamanho, preco, previsao, obs } = valida.data
 
   try {
-    const produtos = await prisma.produto.update({
+    const miniatura = await prisma.miniatura.update({
       where: { id: Number(id) },
-      data: { nome, quant, preco  }
+      data: { personagem, tamanho, preco, previsao, obs}
     })
-    res.status(200).json(produtos)
+    res.status(200).json(miniatura)
   } catch (error) {
     res.status(400).json({ error })
   }
